@@ -1,0 +1,11 @@
+name = "functions-workshop-ext"
+type = "product_discounts"
+api_version = "2022-07"
+
+[build]
+command = "cargo wasi build --release"
+path = "target/wasm32-wasi/release/functions-workshop-ext.wasm"
+
+[ui.paths]
+create = "/"
+details = "/"
