@@ -2,6 +2,9 @@ import { BrowserRouter } from "react-router-dom";
 import { NavigationMenu } from "@shopify/app-bridge-react";
 import Routes from "./Routes";
 
+import { AppProvider } from "@shopify/discount-app-components";
+import "@shopify/discount-app-components/build/esm/styles.css";
+
 import {
   AppBridgeProvider,
   QueryProvider,
@@ -10,24 +13,26 @@ import {
 
 export default function App() {
   // Any .tsx or .jsx files in /pages will become a route
-  // See documentation for <Routes /> for more info
+  // For more information, refer to the <Routes /> documentation
   const pages = import.meta.globEager("./pages/**/!(*.test.[jt]sx)*.([jt]sx)");
 
   return (
     <PolarisProvider>
       <BrowserRouter>
         <AppBridgeProvider>
-          <QueryProvider>
-            <NavigationMenu
-              navigationLinks={[
-                {
-                  label: "Page name",
-                  destination: "/pagename",
-                },
-              ]}
-            />
-            <Routes pages={pages} />
-          </QueryProvider>
+          <AppProvider locale="ja-JP" ianaTimezone="Asia/Tokyo">
+            <QueryProvider>
+              <NavigationMenu
+                navigationLinks={[
+                  {
+                    label: "New volume discount",
+                    destination: "/volume/new",
+                  },
+                ]}
+              />
+              <Routes pages={pages} />
+            </QueryProvider>
+          </AppProvider>
         </AppBridgeProvider>
       </BrowserRouter>
     </PolarisProvider>

@@ -8,7 +8,7 @@ import shopify from "./shopify.js";
 import productCreator from "./product-creator.js";
 import GDPRWebhookHandlers from "./gdpr.js";
 
-const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
+const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT || "10", 10);
 
 const STATIC_PATH =
   process.env.NODE_ENV === "production"
@@ -22,17 +22,73 @@ app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
   shopify.config.auth.callbackPath,
   shopify.auth.callback(),
-  shopify.redirectToShopifyOrAppRoot()
+  shopify.redirectToShopifyOrAppRoot(),
 );
 app.post(
   shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers })
+  shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers }),
 );
 
 // All endpoints after this point will require an active session
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
 app.use(express.json());
+
+const CREATE_CODE_MUTATION = `
+    mutation CreateCodeDiscount($discount: DiscountCodeAppInput!) {
+    discountCreate: discountCodeAppCreate(codeAppDiscount: $discount) {
+        userErrors {
+        code
+        message
+        field
+        }
+    }
+    }
+`;
+
+const CREATE_AUTOMATIC_MUTATION = `
+    mutation CreateAutomaticDiscount($discount: DiscountAutomaticAppInput!) {
+    discountCreate: discountAutomaticAppCreate(
+        automaticAppDiscount: $discount
+    ) {
+        userErrors {
+        code
+        message
+        field
+        }
+    }
+    }
+`;
+
+const runDiscountMutation = async (req, res, mutation) => {
+  const session = res.locals.shopify.session;
+  const client = new shopify.api.clients.Graphql({ session: session });
+
+  const data = await client.query({
+    data: {
+      query: mutation,
+      variables: { discount: req.body },
+    },
+  });
+
+  res.send(data.body);
+};
+
+app.post(
+  "/api/discounts/code",
+  shopify.validateAuthenticatedSession(),
+  async (req, res) => {
+    await runDiscountMutation(req, res, CREATE_CODE_MUTATION);
+  },
+);
+
+app.post(
+  "/api/discounts/automatic",
+  shopify.validateAuthenticatedSession(),
+  async (req, res) => {
+    await runDiscountMutation(req, res, CREATE_AUTOMATIC_MUTATION);
+  },
+);
 
 app.get("/api/products/count", async (_req, res) => {
   const countData = await shopify.api.rest.Product.count({
