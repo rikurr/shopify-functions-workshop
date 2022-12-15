@@ -7,5 +7,5 @@ command = "cargo wasi build --release"
 path = "target/wasm32-wasi/release/functions-workshop-ext.wasm"
 
 [ui.paths]
-create = "/"
-details = "/"
+create = "/volume/new"
+details = "/volume/:id"
