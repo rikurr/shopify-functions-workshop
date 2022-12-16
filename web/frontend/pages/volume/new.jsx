@@ -28,8 +28,8 @@ import {
 import { useAuthenticatedFetch } from "../../hooks";
 
 const todaysDate = new Date();
-const METAFIELD_NAMESPACE = "YOUR_NAMESPACE";
-const METAFIELD_CONFIGURATION_KEY = "volume-config";
+const METAFIELD_NAMESPACE = "functions-workshop-ext";
+const METAFIELD_CONFIGURATION_KEY = "function-configuration";
 // REPLACE THE LINE BELOW WITH THE ID OF YOUR FUNCTION
 const FUNCTION_ID = "01GMATQNFZRZV7Y8CTMW6XS4QC";
 
@@ -122,6 +122,7 @@ export default function VolumeNew() {
       }
 
       const data = (await response.json()).data;
+      console.log("Data", data);
       const remoteErrors = data.discountCreate.userErrors;
       if (remoteErrors.length > 0) {
         return { status: "fail", errors: remoteErrors };
